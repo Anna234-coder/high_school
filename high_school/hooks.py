@@ -168,7 +168,10 @@ doc_events = {
     },
     "Student Attendance": {
         "validate": "high_school.high_school.attendance_utils.process_standard_attendance_punishment",
-        "on_submit": "high_school.high_school.attendance_utils.trigger_standard_attendance_recalc",
+        "on_submit": [
+        "high_school.high_school.attendance_utils.trigger_standard_attendance_recalc",
+        "high_school.high_school.attendance_utils.notify_guardian_on_attendance",
+    ],
         "on_cancel": "high_school.high_school.attendance_utils.trigger_standard_attendance_recalc",
     },
     "Taliui Akonofo": {

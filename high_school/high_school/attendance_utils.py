@@ -292,3 +292,62 @@ def trigger_standard_attendance_recalc(
     """Recalculate the student's total after attendance changes."""
 
     update_student_overall_moua_total(doc.student)
+
+def notify_guardian_on_attendance(doc, method=None):
+    """
+    Send an email notification to a student's guardians
+    when the attendance status is Absent or Leave.
+    """
+
+    if doc.status not in ("Absent", "Leave"):
+        return
+
+    guardians = frappe.get_all(
+        "Student Guardian",
+        filters={
+            "parent": doc.student,
+            "parenttype": "Student",
+            "parentfield": "guardians",
+        },
+        fields=["guardian"],
+    )
+
+    for row in guardians:
+        if not row.guardian:
+            continue
+
+        guardian = frappe.db.get_value(
+            "Guardian",
+            row.guardian,
+            ["guardian_name", "email_address"],
+            as_dict=True,
+        )
+
+        if not guardian or not guardian.email_address:
+            continue
+
+        subject = f"Attendance Notification - {doc.student_name}"
+
+        message = f"""
+        <p>Dear {guardian.guardian_name},</p>
+
+        <p>This is a notification regarding the attendance of
+        <strong>{doc.student_name}</strong>.</p>
+
+        <p>
+        <strong>Date:</strong> {doc.date}<br>
+        <strong>Status:</strong> {doc.status}
+        </p>
+
+        <p>Please contact the school if you require further information.</p>
+
+        <p>Thank you.</p>
+        """
+
+        frappe.sendmail(
+            recipients=[guardian.email_address],
+            subject=subject,
+            message=message,
+        )
+
+
