@@ -2,6 +2,7 @@ import re
 
 import frappe
 from frappe import _
+from frappe.utils import flt
 
 from education.education.doctype.fee_schedule.fee_schedule import (
     create_sales_invoice,
@@ -111,7 +112,6 @@ def get_fee_schedules(fee_structure):
 
     return fee_schedules
 
-
 def apply_student_fee_discount(invoice_name, student):
     """
     Apply the student's custom fee discount.
@@ -131,8 +131,6 @@ def apply_student_fee_discount(invoice_name, student):
     if discount_pct <= 0:
         return None
 
-    discount_factor = discount_pct / 100.0
-
     invoice = frappe.get_doc(
         "Sales Invoice",
         invoice_name,
@@ -140,11 +138,18 @@ def apply_student_fee_discount(invoice_name, student):
 
     for item in invoice.items:
         item.discount_percentage = discount_pct
-        item.amount = (
-            item.rate
-            * item.qty
-            * (1 - discount_factor)
+
+        item.discount_amount = flt(
+            item.price_list_rate * discount_pct / 100.0,
+            item.precision("discount_amount"),
         )
+
+        item.rate = flt(
+            item.price_list_rate - item.discount_amount,
+            item.precision("rate"),
+        )
+
+    invoice.calculate_taxes_and_totals()
 
     invoice.flags.ignore_validate_update_after_submit = True
 
@@ -154,38 +159,15 @@ def apply_student_fee_discount(invoice_name, student):
 
     return discount_pct
 
-
 def generate_custom_fees(enrollment, method=None):
     """
     Generate Sales Invoice(s) when a Program Enrollment
     is submitted.
 
-    Current behaviour:
+    One invoice is created for each submitted Fee Schedule.
 
-        Program Enrollment
-                ↓
-        Student Batch
-                ↓
-        Fee Structure
-                ↓
-        All Fee Schedules
-                ↓
-        Sales Invoice(s)
-
-    Academic Term is NOT required.
-
-    If there is currently one Fee Schedule, one invoice
-    will be created.
-
-    If there are later four Fee Schedules, four invoices
-    will be created.
-
-    Future developers can extend this function with:
-        - applicable terms
-        - individual due dates
-        - mid-term enrollment
-        - pro-rata fees
-        - overdue logic
+    Existing invoices for the same student and Fee Schedule
+    are skipped to prevent duplicates.
     """
 
     if not enrollment.student:
@@ -201,7 +183,7 @@ def generate_custom_fees(enrollment, method=None):
     )
 
     # ---------------------------------------------------------
-    # 2. Get all Fee Schedules for that structure
+    # 2. Get all submitted Fee Schedules
     # ---------------------------------------------------------
 
     fee_schedules = get_fee_schedules(
@@ -209,12 +191,27 @@ def generate_custom_fees(enrollment, method=None):
     )
 
     created_invoices = []
+    skipped_invoices = []
 
     # ---------------------------------------------------------
     # 3. Create one invoice per Fee Schedule
     # ---------------------------------------------------------
 
     for fee_schedule in fee_schedules:
+
+        existing_invoice = frappe.db.get_value(
+            "Sales Invoice",
+            {
+                "student": enrollment.student,
+                "fee_schedule": fee_schedule.name,
+                "docstatus": ["<", 2],
+            },
+            "name",
+        )
+
+        if existing_invoice:
+            skipped_invoices.append(existing_invoice)
+            continue
 
         invoice_name = create_sales_invoice(
             fee_schedule.name,
@@ -234,11 +231,16 @@ def generate_custom_fees(enrollment, method=None):
 
     frappe.msgprint(
         _(
-            "Created {0} Sales Invoice(s) for Fee Structure {1}."
+            "Created {0} Sales Invoice(s) and skipped {1} "
+            "existing invoice(s) for Fee Structure {2}."
         ).format(
             len(created_invoices),
+            len(skipped_invoices),
             fee_structure,
         )
     )
 
-    return created_invoices
+    return {
+        "created": created_invoices,
+        "skipped": skipped_invoices,
+    }
