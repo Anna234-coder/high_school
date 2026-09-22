@@ -81,12 +81,24 @@ def get_fee_structure_for_student(student, batch_name=None):
     return f"{stream}{form_code}{rank}"
 
 
-def get_fee_schedules(fee_structure):
+def get_fee_schedules(fee_structure, enrollment_date=None):
     """
-    Get all submitted Fee Schedules belonging
-    to the Fee Structure.
+    Get submitted Fee Schedules for a Fee Structure.
 
-    Academic Term is deliberately not used here.
+    Academic Term is deliberately not used.
+
+    Term fees are identified from their Fee Category names,
+    for example:
+        Term 1
+        Term 2
+        Term 3
+        Term 4
+
+    A term fee is included when the student's enrollment date
+    is on or before that Fee Schedule's due date.
+
+    This prevents students from being charged for term fees
+    whose due dates had already passed before enrollment.
     """
 
     fee_schedules = frappe.get_all(
@@ -98,8 +110,10 @@ def get_fee_schedules(fee_structure):
         fields=[
             "name",
             "fee_structure",
+            "posting_date",
+            "due_date",
         ],
-        order_by="creation asc",
+        order_by="posting_date asc",
     )
 
     if not fee_schedules:
@@ -110,7 +124,66 @@ def get_fee_schedules(fee_structure):
             ).format(fee_structure)
         )
 
-    return fee_schedules
+    selected_schedules = []
+
+    for schedule_data in fee_schedules:
+
+        schedule = frappe.get_doc(
+            "Fee Schedule",
+            schedule_data.name,
+        )
+
+        categories = [
+            component.fees_category
+            for component in schedule.components
+            if component.fees_category
+        ]
+
+        # -----------------------------------------------------
+        # Determine whether this schedule contains a Term fee.
+        # -----------------------------------------------------
+
+        term_categories = [
+            category
+            for category in categories
+            if re.match(
+                r"^Term\s+\d+$",
+                str(category),
+                re.IGNORECASE,
+            )
+        ]
+
+        # -----------------------------------------------------
+        # Term fees:
+        # Do not charge a term whose due date has already
+        # passed before the student enrolled.
+        # -----------------------------------------------------
+
+        if term_categories and enrollment_date:
+
+            if (
+                schedule_data.due_date
+                and enrollment_date > schedule_data.due_date
+            ):
+                continue
+
+        selected_schedules.append(schedule_data)
+
+    if not selected_schedules:
+        frappe.throw(
+            _(
+                "No applicable Fee Schedule was found for "
+                "Fee Structure {0} and enrollment date {1}."
+            ).format(
+                fee_structure,
+                enrollment_date,
+            )
+        )
+
+    return selected_schedules
+
+
+
 
 def apply_student_fee_discount(invoice_name, student):
     """
@@ -187,7 +260,8 @@ def generate_custom_fees(enrollment, method=None):
     # ---------------------------------------------------------
 
     fee_schedules = get_fee_schedules(
-        fee_structure
+        fee_structure,
+        enrollment_date=enrollment.enrollment_date,
     )
 
     created_invoices = []

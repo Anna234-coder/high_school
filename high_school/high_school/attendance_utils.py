@@ -292,15 +292,27 @@ def trigger_standard_attendance_recalc(
     """Recalculate the student's total after attendance changes."""
 
     update_student_overall_moua_total(doc.student)
-
 def notify_guardian_on_attendance(doc, method=None):
     """
-    Send an email notification to a student's guardians
-    when the attendance status is Absent or Leave.
+    Send an attendance notification to all parents/guardians
+    linked to the student.
+
+    Notifications are sent only for Absent or Leave attendance.
     """
 
+    # ---------------------------------------------------------
+    # Only notify for Absent or Leave
+    # ---------------------------------------------------------
+
     if doc.status not in ("Absent", "Leave"):
-        return
+        return None
+
+    if not doc.student:
+        return None
+
+    # ---------------------------------------------------------
+    # Get all guardians linked to the Student
+    # ---------------------------------------------------------
 
     guardians = frappe.get_all(
         "Student Guardian",
@@ -309,45 +321,118 @@ def notify_guardian_on_attendance(doc, method=None):
             "parenttype": "Student",
             "parentfield": "guardians",
         },
-        fields=["guardian"],
+        fields=["guardian", "guardian_name"],
     )
 
+    if not guardians:
+        frappe.log_error(
+            f"No guardians found for Student {doc.student}",
+            "Attendance Guardian Notification",
+        )
+        return None
+
+    recipient_emails = []
+    guardian_names = []
+
+    # ---------------------------------------------------------
+    # Get each Guardian's email address
+    # ---------------------------------------------------------
+
     for row in guardians:
+
         if not row.guardian:
             continue
 
-        guardian = frappe.db.get_value(
+        email = frappe.db.get_value(
             "Guardian",
             row.guardian,
-            ["guardian_name", "email_address"],
-            as_dict=True,
+            "email_address",
         )
 
-        if not guardian or not guardian.email_address:
-            continue
+        if email:
+            recipient_emails.append(email)
+            guardian_names.append(
+                row.guardian_name or row.guardian
+            )
 
-        subject = f"Attendance Notification - {doc.student_name}"
+    # ---------------------------------------------------------
+    # Remove duplicate email addresses
+    # ---------------------------------------------------------
 
-        message = f"""
-        <p>Dear {guardian.guardian_name},</p>
+    recipient_emails = list(dict.fromkeys(recipient_emails))
 
-        <p>This is a notification regarding the attendance of
-        <strong>{doc.student_name}</strong>.</p>
-
-        <p>
-        <strong>Date:</strong> {doc.date}<br>
-        <strong>Status:</strong> {doc.status}
-        </p>
-
-        <p>Please contact the school if you require further information.</p>
-
-        <p>Thank you.</p>
-        """
-
-        frappe.sendmail(
-            recipients=[guardian.email_address],
-            subject=subject,
-            message=message,
+    if not recipient_emails:
+        frappe.log_error(
+            f"No guardian email address found for Student {doc.student}",
+            "Attendance Guardian Notification",
         )
+        return None
+
+    # ---------------------------------------------------------
+    # Student information
+    # ---------------------------------------------------------
+
+    student_name = frappe.db.get_value(
+        "Student",
+        doc.student,
+        "student_name",
+    )
+
+    attendance_date = frappe.utils.formatdate(doc.date)
+
+    # ---------------------------------------------------------
+    # Email content
+    # ---------------------------------------------------------
+
+    subject = (
+        f"Attendance Notification - "
+        f"{student_name} - {doc.status}"
+    )
+
+    message = f"""
+    <p>Dear Parent/Guardian,</p>
+
+    <p>
+        This is an attendance notification from
+        Queen Salote College.
+    </p>
+
+    <p>
+        <strong>Student:</strong> {student_name}<br>
+        <strong>Date:</strong> {attendance_date}<br>
+        <strong>Attendance Status:</strong> {doc.status}
+    </p>
+
+    <p>
+        Please contact the school if you require any
+        further information regarding this attendance record.
+    </p>
+
+    <p>
+        Kind regards,<br>
+        Queen Salote College
+    </p>
+    """
+
+    # ---------------------------------------------------------
+    # Send email to parent/guardian email addresses
+    # ---------------------------------------------------------
+
+    frappe.sendmail(
+        recipients=recipient_emails,
+        subject=subject,
+        message=message,
+        reference_doctype="Student Attendance",
+        reference_name=doc.name,
+    )
+
+    return {
+        "student": doc.student,
+        "student_name": student_name,
+        "status": doc.status,
+        "guardians": guardian_names,
+        "recipients": recipient_emails,
+    }
+
 
 

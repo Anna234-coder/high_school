@@ -27,7 +27,7 @@ import high_school.high_school.api
 from high_school.high_school.patches import apply_patches
 
 # include js, css files in header of desk.html
-# app_include_css = "/assets/high_school/css/high_school.css"
+app_include_css = "/assets/high_school/css/qsc_login.css"
 # app_include_js = "/assets/high_school/js/high_school.js"
 
 # include js, css files in header of web template
