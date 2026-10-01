@@ -31,7 +31,7 @@ app_include_css = "/assets/high_school/css/qsc_login.css"
 # app_include_js = "/assets/high_school/js/high_school.js"
 
 # include js, css files in header of web template
-# web_include_css = "/assets/high_school/css/high_school.css"
+web_include_css = "/assets/high_school/css/qsc_login.css"
 # web_include_js = "/assets/high_school/js/high_school.js"
 
 # include custom scss in every website theme (without file extension ".scss")

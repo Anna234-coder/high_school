@@ -6,6 +6,7 @@ from frappe.utils import flt
 
 from education.education.doctype.fee_schedule.fee_schedule import (
     create_sales_invoice,
+    get_fees_mapped_doc,
 )
 
 

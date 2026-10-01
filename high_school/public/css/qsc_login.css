@@ -1,68 +1,312 @@
 /* =========================================================
-   QSC LOGIN PAGE
-   Queen Salote College
+   QUEEN SALOTE COLLEGE - CUSTOM FRAPPE LOGIN
+   ========================================================= */
+
+
+/* =========================================================
+   1. FULL SCREEN QSC BACKGROUND
    ========================================================= */
 
 html,
-body,
-.page-container,
-.page-wrapper,
-.web-page {
-    margin: 0 !important;
-    padding: 0 !important;
-    background: transparent !important;
+body {
+    min-height: 100% !important;
 }
 
-.for-login {
-    position: relative !important;
+body[data-path="login"] {
     min-height: 100vh !important;
-    width: 100% !important;
-
-    display: flex !important;
-    align-items: center !important;
-    justify-content: center !important;
-
-    padding: 40px 20px !important;
-
-    background: transparent !important;
-    overflow: hidden !important;
-}
-
-/* QSC background */
-.for-login::before {
-    content: "" !important;
-
-    position: fixed !important;
-    inset: 0 !important;
-
-    width: 100vw !important;
-    height: 100vh !important;
+    margin: 0 !important;
 
     background-image: url("/assets/high_school/images/Background.png") !important;
     background-size: cover !important;
     background-position: center center !important;
     background-repeat: no-repeat !important;
+    background-attachment: fixed !important;
 
-    z-index: 0 !important;
+    background-color: #b9dcfa !important;
 }
 
-/* Login card */
-.for-login .login-content {
-    position: relative !important;
-    z-index: 2 !important;
 
-    width: 100% !important;
-    max-width: 500px !important;
+/* Remove Frappe's default login background */
 
-    margin: 0 auto !important;
-    padding: 42px 45px 40px 45px !important;
+body[data-path="login"] .page-wrapper {
+    min-height: 100vh !important;
+    background: transparent !important;
+}
+
+body[data-path="login"] .container {
+    background: transparent !important;
+}
+
+
+/* =========================================================
+   2. LOGIN CARD
+   ========================================================= */
+
+body[data-path="login"] .page-card {
+    width: 570px !important;
+    max-width: calc(100% - 40px) !important;
+
+    margin: 30px auto !important;
+    padding: 32px 40px 35px 40px !important;
+
+    background: rgba(255, 255, 255, 0.93) !important;
+
+    border: 1px solid rgba(255, 255, 255, 0.8) !important;
+
+    border-radius: 16px !important;
+
+    box-shadow:
+        0 12px 40px rgba(0, 52, 100, 0.20) !important;
+
+    backdrop-filter: blur(8px) !important;
+}
+
+
+/* =========================================================
+   3. QSC 100 YEARS LOGO
+   ========================================================= */
+
+/*
+   This replaces the default blue Frappe logo
+   with your Logo.jpeg.
+*/
+
+body[data-path="login"] .page-card .page-card-head .app-logo {
+    display: block !important;
+
+    width: 145px !important;
+    height: 145px !important;
+
+    margin: 0 auto 12px auto !important;
+
+    object-fit: contain !important;
+
+    background: transparent !important;
+
+    background-image: none !important;
+
+    content: url("/assets/high_school/images/Logo.jpeg") !important;
+}
+
+
+/* =========================================================
+   4. LOGIN TITLE
+   ========================================================= */
+
+/*
+   Hide Frappe's original "Login" text.
+*/
+
+body[data-path="login"] .page-card .page-card-head h4 {
+    font-size: 0 !important;
+
+    text-align: center !important;
+
+    margin: 5px 0 8px 0 !important;
+}
+
+
+/*
+   Display Queen Salote College instead.
+*/
+
+body[data-path="login"] .page-card .page-card-head h4::after {
+    content: "Queen Salote College" !important;
+
+    display: block !important;
+
+    font-size: 30px !important;
+    line-height: 1.2 !important;
+
+    font-weight: 700 !important;
+
+    color: #073b78 !important;
+
+    text-align: center !important;
+}
+
+
+/* =========================================================
+   5. WELCOME TEXT
+   ========================================================= */
+
+body[data-path="login"] .page-card .page-card-head p {
+    color: #45617d !important;
+
+    font-size: 16px !important;
+
+    text-align: center !important;
+
+    margin-top: 5px !important;
+    margin-bottom: 28px !important;
+}
+
+
+/* =========================================================
+   6. FORM LABELS
+   ========================================================= */
+
+body[data-path="login"] .form-label {
+    color: #405873 !important;
+
+    font-size: 15px !important;
+
+    font-weight: 600 !important;
+}
+
+
+/* =========================================================
+   7. EMAIL AND PASSWORD INPUTS
+   ========================================================= */
+
+body[data-path="login"] .form-control {
+    height: 48px !important;
+
+    padding-left: 45px !important;
+
+    border: 1px solid #cbd8e6 !important;
+
+    border-radius: 9px !important;
 
     background: rgba(255, 255, 255, 0.96) !important;
 
-    border-radius: 18px !important;
+    color: #263b52 !important;
+
+    font-size: 15px !important;
+
+    box-shadow: none !important;
+}
+
+
+body[data-path="login"] .form-control:focus {
+    border-color: #1769c2 !important;
 
     box-shadow:
-        0 10px 35px rgba(0, 0, 0, 0.15) !important;
+        0 0 0 3px rgba(23, 105, 194, 0.12) !important;
+}
 
-    border: 1px solid rgba(231, 237, 245, 0.9) !important;
+
+/* =========================================================
+   8. FORGOT PASSWORD
+   ========================================================= */
+
+body[data-path="login"] .forgot-password-message,
+body[data-path="login"] a {
+    color: #0059b3 !important;
+}
+
+
+body[data-path="login"] .forgot-password-message:hover,
+body[data-path="login"] a:hover {
+    color: #003f80 !important;
+}
+
+
+/* =========================================================
+   9. CONTINUE BUTTON
+   ========================================================= */
+
+body[data-path="login"] .btn-primary {
+    width: 100% !important;
+
+    height: 48px !important;
+
+    margin-top: 15px !important;
+
+    border: none !important;
+
+    border-radius: 9px !important;
+
+    background: #07519d !important;
+
+    color: #ffffff !important;
+
+    font-size: 16px !important;
+
+    font-weight: 600 !important;
+
+    box-shadow: none !important;
+}
+
+
+body[data-path="login"] .btn-primary:hover,
+body[data-path="login"] .btn-primary:focus {
+    background: #063f7b !important;
+
+    color: #ffffff !important;
+}
+
+
+/* =========================================================
+   10. LOGIN WITH EMAIL LINK
+   ========================================================= */
+
+body[data-path="login"] .btn-login-with-email-link {
+    width: 100% !important;
+
+    height: 46px !important;
+
+    margin-top: 12px !important;
+
+    border: none !important;
+
+    border-radius: 9px !important;
+
+    background: #dbeafa !important;
+
+    color: #0059b3 !important;
+
+    font-size: 15px !important;
+
+    font-weight: 500 !important;
+}
+
+
+body[data-path="login"] .btn-login-with-email-link:hover {
+    background: #c9e1f7 !important;
+
+    color: #003f80 !important;
+}
+
+
+/* =========================================================
+   11. REMOVE DEFAULT CARD HEADER BORDER
+   ========================================================= */
+
+body[data-path="login"] .page-card-head {
+    border-bottom: none !important;
+}
+
+
+/* =========================================================
+   12. MOBILE
+   ========================================================= */
+
+@media (max-width: 700px) {
+
+    body[data-path="login"] .page-card {
+        width: calc(100% - 30px) !important;
+
+        max-width: none !important;
+
+        margin: 20px auto !important;
+
+        padding: 25px 22px 28px 22px !important;
+    }
+
+
+    body[data-path="login"] .page-card .page-card-head .app-logo {
+        width: 115px !important;
+        height: 115px !important;
+    }
+
+
+    body[data-path="login"] .page-card .page-card-head h4::after {
+        font-size: 25px !important;
+    }
+
+
+    body[data-path="login"] .page-card .page-card-head p {
+        font-size: 14px !important;
+    }
 }
