@@ -74,8 +74,11 @@ body[data-path="login"] .page-card {
 body[data-path="login"] .page-card .page-card-head .app-logo {
     display: block !important;
 
-    width: 145px !important;
-    height: 145px !important;
+    width: 190px !important;
+    height: 190px !important;
+    max-width: none !important;
+    max-height: none !important;
+    object-fit: contain !important;
 
     margin: 0 auto 12px auto !important;
 
