@@ -1,0 +1,32 @@
+{
+ "add_total_row": 0,
+ "add_translate_data": 0,
+ "columns": [],
+ "creation": "2026-10-12 02:37:40.441528",
+ "disable_prepared_report_automation": 0,
+ "disabled": 0,
+ "docstatus": 0,
+ "doctype": "Report",
+ "doctype_to_sync": [],
+ "filters": [],
+ "idx": 0,
+ "is_standard": "Yes",
+ "letter_head": null,
+ "modified": "2026-10-12 03:29:32.699884",
+ "modified_by": "Administrator",
+ "module": "High School",
+ "name": "Me'a Tanaki Status Report",
+ "owner": "Administrator",
+ "prepared_report": 0,
+ "query": "\nSELECT\n    nt.name AS \"Record ID:Link/Ngaue Tanaki:180\",\n    nt.student AS \"Student:Link/Student:180\",\n    COALESCE(s.student_name, nt.student) AS \"Student Name:Data:180\",\n    COALESCE(i.item_name, nt.mea_tanaki) AS \"Me'a Tanaki:Data:150\",\n    nt.due_date AS \"Due Date:Date:110\",\n    CASE\n        WHEN nt.submitted = 1 THEN 'Submitted'\n        WHEN nt.due_date < CURDATE() THEN 'Overdue'\n        ELSE 'Pending'\n    END AS \"Status:Data:110\",\n    nt.responsible_teacher AS \"Responsible Teacher:Link/Instructor:180\",\n    nt.reminder_sent AS \"Reminder Sent:Check:100\",\n    nt.reminder_sent_on AS \"Reminder Sent On:Date:130\",\n    nt.submitted_date AS \"Submitted Date:Date:130\"\nFROM `tabNgaue Tanaki` nt\nLEFT JOIN `tabStudent` s ON s.name = nt.student\nLEFT JOIN `tabItem` i ON i.name = nt.mea_tanaki\nORDER BY nt.due_date ASC, nt.student ASC\n",
+ "ref_doctype": "Ngaue Tanaki",
+ "report_name": "Me'a Tanaki Status Report",
+ "report_type": "Query Report",
+ "roles": [
+  {
+   "role": "System Manager"
+  }
+ ],
+ "snapshot_report": 0,
+ "timeout": 0
+}
